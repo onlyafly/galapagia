@@ -20439,19 +20439,31 @@ exports.default = _react2.default.createClass({
   displayName: 'IndexPage',
 
   getInitialState: function getInitialState() {
-    return { counter: "" };
+    return { counter: "", info: "" };
   },
 
-  componentDidMount: function componentDidMount() {},
-
-  handleButtonClick: function handleButtonClick() {
+  componentDidMount: function componentDidMount() {
     var _this = this;
 
+    this.dataWebSocket = new WebSocket("ws://localhost:8080/api/dataWebSocket");
+    this.dataWebSocket.onopen = function () {
+      _this.dataWebSocket.send(JSON.stringify({ info: "Connection init" }));
+    };
+    this.dataWebSocket.onmessage = function (e) {
+      _this.setState({ info: e.data });
+    };
+  },
+
+  handleButtonClick: function handleButtonClick() {
+    var _this2 = this;
+
     _api2.default.get('/api/tick', function (res) {
-      _this.setState({
-        counter: res.body.counter
-      });
+      _this2.setState({ counter: res.body.counter });
     }, function (err, res) {});
+  },
+
+  handleSendSomethingClick: function handleSendSomethingClick() {
+    this.dataWebSocket.send(JSON.stringify({ "test": 34 }));
   },
 
   render: function render() {
@@ -20464,9 +20476,24 @@ exports.default = _react2.default.createClass({
         this.state.counter
       ),
       _react2.default.createElement(
+        'div',
+        null,
+        'Info:',
+        _react2.default.createElement(
+          'span',
+          null,
+          this.state.info
+        )
+      ),
+      _react2.default.createElement(
         'button',
         { onClick: this.handleButtonClick },
         'Tick'
+      ),
+      _react2.default.createElement(
+        'button',
+        { onClick: this.handleSendSomethingClick },
+        'SendSomething'
       )
     );
   }
