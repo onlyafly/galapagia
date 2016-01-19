@@ -72,8 +72,17 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleDataWebSocket(fromClient chan<- map[string]interface{}, toClient <-chan interface{}) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+type DataWebSocket struct {
+	Handler    http.HandlerFunc
+	FromClient chan map[string]interface{}
+	ToClient   chan interface{}
+}
+
+func NewDataWebSocket() *DataWebSocket {
+	from := make(chan map[string]interface{})
+	to := make(chan interface{})
+
+	h := func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
 			fmt.Println(err)
@@ -82,11 +91,8 @@ func handleDataWebSocket(fromClient chan<- map[string]interface{}, toClient <-ch
 
 		go func() {
 			for {
-				fmt.Println("Waiting to fetch data from toClient:")
-				j := <-toClient
-				fmt.Println("Fetched data from toClient:", j)
+				j := <-to
 				err = conn.WriteJSON(j)
-				fmt.Println("Sent data to client:", j)
 				if err != nil {
 					fmt.Println("Error writing JSON:", err)
 					return
@@ -101,11 +107,15 @@ func handleDataWebSocket(fromClient chan<- map[string]interface{}, toClient <-ch
 				fmt.Println("Error reading JSON:", err)
 				return
 			} else {
-				fmt.Println("Waiting to send data to fromClient:", j)
-				fromClient <- j
-				fmt.Println("Sent data to fromClient:", j)
+				from <- j
 			}
 		}
+	}
+
+	return &DataWebSocket{
+		FromClient: from,
+		ToClient:   to,
+		Handler:    h,
 	}
 }
 
@@ -116,13 +126,13 @@ func ServeSite() {
 	router.Methods("GET").Path("/echo").HandlerFunc(echoHandler)
 	router.Methods("GET").Path("/").HandlerFunc(homeHandler)
 
-	var fromClient chan map[string]interface{}
-	var toClient chan interface{}
-	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(handleDataWebSocket(fromClient, toClient))
+	dataWebSocket := NewDataWebSocket()
+
+	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(dataWebSocket.Handler)
 	go func() {
 		for {
 			fmt.Println("Waiting for a read from client:")
-			m := <-fromClient
+			m := <-dataWebSocket.FromClient
 			fmt.Println("Read over the websocket:", m)
 		}
 	}()
@@ -131,7 +141,7 @@ func ServeSite() {
 			Counter: 64,
 		}
 		fmt.Println("Sending data to client:", c)
-		toClient <- c
+		dataWebSocket.ToClient <- c
 		fmt.Println("Sent data to client:", c)
 	}()
 
