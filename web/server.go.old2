@@ -72,39 +72,35 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleDataWebSocket(fromClient chan<- map[string]interface{}, toClient <-chan interface{}) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		conn, err := upgrader.Upgrade(w, r, nil)
+func handleDataWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	for {
+		fmt.Println("Waiting to read data over websocket")
+
+		/*
+			_, p, _ := conn.ReadMessage()
+			fmt.Println("Read from ReadMessage", p)*/
+
+		var j map[string]interface{}
+		err = conn.ReadJSON(&j)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println("Error reading JSON:", err)
 			return
 		}
+		fmt.Println("Read over the websocket:", j)
 
-		go func() {
-			for {
-				fmt.Println("Waiting to fetch data from toClient:")
-				j := <-toClient
-				fmt.Println("Fetched data from toClient:", j)
-				err = conn.WriteJSON(j)
-				fmt.Println("Sent data to client:", j)
-				if err != nil {
-					fmt.Println("Error writing JSON:", err)
-					return
-				}
-			}
-		}()
-
-		for {
-			var j map[string]interface{}
-			err = conn.ReadJSON(&j)
-			if err != nil {
-				fmt.Println("Error reading JSON:", err)
-				return
-			} else {
-				fmt.Println("Waiting to send data to fromClient:", j)
-				fromClient <- j
-				fmt.Println("Sent data to fromClient:", j)
-			}
+		c := CounterJson{
+			Counter: 64,
+		}
+		err = conn.WriteJSON(c)
+		if err != nil {
+			fmt.Println("Error writing JSON:", err)
+			return
 		}
 	}
 }
@@ -115,26 +111,7 @@ func ServeSite() {
 
 	router.Methods("GET").Path("/echo").HandlerFunc(echoHandler)
 	router.Methods("GET").Path("/").HandlerFunc(homeHandler)
-
-	var fromClient chan map[string]interface{}
-	var toClient chan interface{}
-	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(handleDataWebSocket(fromClient, toClient))
-	go func() {
-		for {
-			fmt.Println("Waiting for a read from client:")
-			m := <-fromClient
-			fmt.Println("Read over the websocket:", m)
-		}
-	}()
-	go func() {
-		c := CounterJson{
-			Counter: 64,
-		}
-		fmt.Println("Sending data to client:", c)
-		toClient <- c
-		fmt.Println("Sent data to client:", c)
-	}()
-
+	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(handleDataWebSocket)
 	router.Methods("GET").Path("/api/tick").HandlerFunc(handleGetTick)
 
 	// Serve all static files
