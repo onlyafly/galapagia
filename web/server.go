@@ -1,6 +1,7 @@
 package web
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
 
@@ -14,7 +15,7 @@ var (
 func homeHandler(w http.ResponseWriter, r *http.Request) {
 	//fmt.Fprintf(w, "Hi there, I love %s!", r.URL.Path[1:])
 	c := map[string]string{
-		"PageTitle": "galapagia",
+		"PageTitle": "alapagia",
 	}
 
 	respondWithTemplate(templates, "index", c, w, r)
@@ -30,5 +31,6 @@ func ServeSite() {
 	// ORDERING: Must be after all other routes
 	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("web/public/"))))
 
+	fmt.Println("Serving galapagia on :8080...")
 	http.ListenAndServe(":8080", router)
 }
