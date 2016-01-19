@@ -4,9 +4,9 @@ var browserify = require('browserify');
 var babelify = require('babelify');
 var vinylSourceStream = require('vinyl-source-stream');
 var gulpUtil = require('gulp-util');
-var child      = require('child_process'); // Node.js module
-var reload     = require('gulp-livereload');
-var sync       = require('gulp-sync')(gulp).sync;
+var child = require('child_process'); // Node.js module
+var reload = require('gulp-livereload');
+var sync = require('gulp-sync')(gulp).sync;
 
 // ---------- local variables
 
