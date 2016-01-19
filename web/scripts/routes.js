@@ -1,7 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import AboutPage from './AboutPage';
+//import AboutPage from './AboutPage';
+import IndexPage from './IndexPage';
 
 ReactDOM.render(
-  <AboutPage/>,
+  <IndexPage/>,
   document.getElementById('generatedContent'));

@@ -10,6 +10,7 @@ import (
 
 var (
 	templates *template.Template
+	counter   int
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,11 +22,26 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	respondWithTemplate(templates, "index", c, w, r)
 }
 
+type CounterJson struct {
+	Counter int `json:"counter"`
+}
+
+func handleGetTick(w http.ResponseWriter, r *http.Request) {
+	counter++
+
+	c := CounterJson{
+		Counter: counter,
+	}
+
+	respondWithJson(c, w)
+}
+
 func ServeSite() {
 	router := mux.NewRouter().StrictSlash(true)
 	templates = template.Must(template.New("").ParseGlob("web/templates/*")) // compile all templates and cache them
 
 	router.Methods("GET").Path("/").HandlerFunc(homeHandler)
+	router.Methods("GET").Path("/api/tick").HandlerFunc(handleGetTick)
 
 	// Serve all static files
 	// ORDERING: Must be after all other routes

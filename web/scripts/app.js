@@ -1,1 +1,1 @@
-import foo from './foo';
+import routes from './routes';
