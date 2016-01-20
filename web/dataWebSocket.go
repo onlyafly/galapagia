@@ -14,24 +14,26 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 			return
 		}
 
-		go func() {
-			j := engine.CurrentGrid()
-
-			err = conn.WriteJSON(j)
-			if err != nil {
-				fmt.Println("Error writing JSON:", err)
-				return
-			}
-		}()
-
 		for {
 			var j map[string]interface{}
 			err = conn.ReadJSON(&j)
 			if err != nil {
 				fmt.Println("Error reading JSON:", err)
 				return
-			} else {
-				fmt.Println("Read from JSON:", j)
+			}
+
+			switch j["command"] {
+			case "show current grid":
+				go func() {
+					j := engine.CurrentGrid()
+					err = conn.WriteJSON(j)
+					if err != nil {
+						fmt.Println("Error writing JSON:", err)
+						return
+					}
+				}()
+			default:
+				fmt.Println("Unrecognized command:", j)
 			}
 		}
 	}

@@ -10,7 +10,7 @@ export default React.createClass({
   componentDidMount: function() {
     this.dataWebSocket = new WebSocket("ws://localhost:8080/api/dataWebSocket");
     this.dataWebSocket.onopen = () => {
-      this.dataWebSocket.send(JSON.stringify({info: "Connection init"}));
+      this.dataWebSocket.send(JSON.stringify({command: "init connection"}));
     };
     this.dataWebSocket.onmessage = (e) => {
       this.setState({grid: JSON.parse(e.data)});
@@ -23,8 +23,8 @@ export default React.createClass({
     }, (err, res) => {});
   },
 
-  handleSendSomethingClick: function() {
-    this.dataWebSocket.send(JSON.stringify({"test": 34}));
+  handleClickShowCurrentGrid: function() {
+    this.dataWebSocket.send(JSON.stringify({command: "show current grid"}));
   },
 
   render: function() {
@@ -37,7 +37,7 @@ export default React.createClass({
           <span>{this.state.info}</span>
         </div>
         <button onClick={this.handleButtonClick}>Tick</button>
-        <button onClick={this.handleSendSomethingClick}>SendSomething</button>
+        <button onClick={this.handleClickShowCurrentGrid}>Show Current Grid</button>
         <div>
           <BoardCanvas canvas={canvas} grid={this.state.grid} />
         </div>

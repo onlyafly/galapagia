@@ -20528,7 +20528,7 @@ exports.default = _react2.default.createClass({
 
     this.dataWebSocket = new WebSocket("ws://localhost:8080/api/dataWebSocket");
     this.dataWebSocket.onopen = function () {
-      _this.dataWebSocket.send(JSON.stringify({ info: "Connection init" }));
+      _this.dataWebSocket.send(JSON.stringify({ command: "init connection" }));
     };
     this.dataWebSocket.onmessage = function (e) {
       _this.setState({ grid: JSON.parse(e.data) });
@@ -20543,8 +20543,8 @@ exports.default = _react2.default.createClass({
     }, function (err, res) {});
   },
 
-  handleSendSomethingClick: function handleSendSomethingClick() {
-    this.dataWebSocket.send(JSON.stringify({ "test": 34 }));
+  handleClickShowCurrentGrid: function handleClickShowCurrentGrid() {
+    this.dataWebSocket.send(JSON.stringify({ command: "show current grid" }));
   },
 
   render: function render() {
@@ -20575,8 +20575,8 @@ exports.default = _react2.default.createClass({
       ),
       _react2.default.createElement(
         'button',
-        { onClick: this.handleSendSomethingClick },
-        'SendSomething'
+        { onClick: this.handleClickShowCurrentGrid },
+        'Show Current Grid'
       ),
       _react2.default.createElement(
         'div',
