@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"container/list"
+	"fmt"
 	"math/rand"
 	"time"
 )
@@ -16,13 +18,13 @@ func init() {
 }
 
 type State struct {
-	Creatures    []*Creature
+	CreatureList *list.List
 	CreatureGrid [][]*Creature
 	CellGrid     [][]int // Only for visualization purposes
 }
 
 func NewState() *State {
-	cs := make([]*Creature, 0)
+	cl := list.New()
 
 	crg := make([][]*Creature, gridWidth)
 	for i, _ := range crg {
@@ -35,7 +37,7 @@ func NewState() *State {
 	}
 
 	return &State{
-		Creatures:    cs,
+		CreatureList: cl,
 		CreatureGrid: crg,
 		CellGrid:     cellg,
 	}
@@ -53,13 +55,21 @@ func (s *State) UpdateCellGrid() {
 		}
 	}
 
-	for _, c := range s.Creatures {
+	for e := s.CreatureList.Front(); e != nil; e = e.Next() {
+		c := e.Value.(*Creature)
 		s.CellGrid[c.xpos][c.ypos] = 1 //TODO
 	}
 }
 
+func (s *State) LogCreatures() {
+	for e := s.CreatureList.Front(); e != nil; e = e.Next() {
+		c := e.Value.(*Creature)
+		fmt.Println("Creature", c)
+	}
+}
+
 func (s *State) Reset() {
-	s.Creatures = make([]*Creature, 0)
+	s.CreatureList = list.New()
 
 	for i := 0; i < gridWidth; i++ {
 		for j := 0; j < gridHeight; j++ {
@@ -72,19 +82,43 @@ func (s *State) Reset() {
 		y := rand.Intn(gridHeight)
 		c := NewCreature(x, y)
 
-		s.Creatures = append(s.Creatures, c)
+		s.CreatureList.PushBack(c)
 
 		s.CreatureGrid[x][y] = c
 	}
 }
 
 func (s *State) Tick() {
-	for _, c := range s.Creatures {
-		s.TickCreature(c)
+	for e := s.CreatureList.Front(); e != nil; e = e.Next() {
+		c := e.Value.(*Creature)
+		s.TickCreature(c, e)
 	}
 }
 
-func (s *State) TickCreature(c *Creature) {
+func (s *State) TickCreature(c *Creature, celement *list.Element) {
+	s.CheckCreatureVitals(c, celement)
+	s.MaybeMoveCreature(c)
+	s.TickCreatureCells(c)
+	//s.MaybeReproduceCreature(c)
+}
+
+func (s *State) CheckCreatureVitals(c *Creature, celement *list.Element) {
+	if c.Energy <= 0 {
+		// Kill creature
+		s.CreatureGrid[c.xpos][c.ypos] = nil
+		s.CreatureList.Remove(celement)
+	}
+}
+
+func (s *State) TickCreatureCells(c *Creature) {
+	// Consumed energy for this tick
+	c.Energy -= int(c.CellGrid[0][0].Value / 100)
+
+	// Gained energy for this tick
+	c.Energy += int(c.CellGrid[0][0].Value / 10)
+}
+
+func (s *State) MaybeMoveCreature(c *Creature) {
 	// Should it move?
 	if rand.Intn(2) == 0 {
 		return // Shouldn't move

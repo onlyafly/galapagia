@@ -20555,6 +20555,10 @@ exports.default = _react2.default.createClass({
     this.dataWebSocket.send(JSON.stringify({ command: "tick 30 times" }));
   },
 
+  handleClickLogData: function handleClickLogData() {
+    this.dataWebSocket.send(JSON.stringify({ command: "log data" }));
+  },
+
   render: function render() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -20595,6 +20599,11 @@ exports.default = _react2.default.createClass({
         'button',
         { onClick: this.handleClickTick30Times },
         'Tick 30 Times'
+      ),
+      _react2.default.createElement(
+        'button',
+        { onClick: this.handleClickLogData },
+        'Log Data'
       ),
       _react2.default.createElement(
         'div',

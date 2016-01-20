@@ -35,6 +35,10 @@ export default React.createClass({
     this.dataWebSocket.send(JSON.stringify({command: "tick 30 times"}));
   },
 
+  handleClickLogData: function() {
+    this.dataWebSocket.send(JSON.stringify({command: "log data"}));
+  },
+
   render: function() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -48,6 +52,7 @@ export default React.createClass({
         <button onClick={this.handleClickShowCurrentGrid}>Show Current Grid</button>
         <button onClick={this.handleClickReset}>Reset</button>
         <button onClick={this.handleClickTick30Times}>Tick 30 Times</button>
+        <button onClick={this.handleClickLogData}>Log Data</button>
         <div>
           <BoardCanvas canvas={canvas} grid={this.state.grid} />
         </div>

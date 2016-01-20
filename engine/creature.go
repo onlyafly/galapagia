@@ -1,5 +1,7 @@
 package engine
 
+import "fmt"
+
 type CellType byte
 
 const (
@@ -21,6 +23,7 @@ type Creature struct {
 	Height   int
 	xpos     int
 	ypos     int
+	Energy   int
 }
 
 func NewCreature(x, y int) *Creature {
@@ -37,6 +40,7 @@ func NewCreature(x, y int) *Creature {
 		Height:   h,
 		xpos:     x,
 		ypos:     y,
+		Energy:   100, // TODO
 	}
 }
 
@@ -46,4 +50,8 @@ func (c *Creature) X() int {
 
 func (c *Creature) Y() int {
 	return c.ypos
+}
+
+func (c *Creature) String() string {
+	return fmt.Sprintf("c<e=%v>", c.Energy)
 }

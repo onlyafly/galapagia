@@ -71,6 +71,10 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 						time.Sleep(10 * time.Millisecond)
 					}
 				}()
+			case "log data":
+				go func() {
+					gs.LogCreatures()
+				}()
 			default:
 				fmt.Println("Unrecognized command:", j)
 			}
