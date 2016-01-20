@@ -53,5 +53,19 @@ func (c *Creature) Y() int {
 }
 
 func (c *Creature) String() string {
-	return fmt.Sprintf("c<e=%v>", c.Energy)
+	return fmt.Sprintf("c<e=%v,x=%v,y=%v>", c.Energy, c.xpos, c.ypos)
+}
+
+func (c *Creature) ReproductionCost() int {
+	return 1000
+}
+
+func (parent *Creature) Reproduce() *Creature {
+	parent.Energy -= parent.ReproductionCost()
+
+	child := NewCreature(parent.xpos, parent.ypos)
+	child.Energy = parent.Energy / 2
+	parent.Energy = parent.Energy / 2
+
+	return child
 }

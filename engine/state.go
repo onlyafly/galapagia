@@ -81,11 +81,42 @@ func (s *State) Reset() {
 		x := rand.Intn(gridWidth)
 		y := rand.Intn(gridHeight)
 		c := NewCreature(x, y)
-
-		s.CreatureList.PushBack(c)
-
-		s.CreatureGrid[x][y] = c
+		fmt.Println("reset unplaced", c, x, y)
+		s.PlaceNewCreature(c, Pos{x, y})
+		fmt.Println("reset placed", c, x, y)
 	}
+}
+
+func closestEmptyPosition(s *State, x, y int) (nx int, ny int, ok bool) {
+	if s.CreatureGrid[x][y] == nil {
+		return x, y, true
+	}
+
+	for dx := -1; dx <= 1; dx++ {
+		for dy := -1; dy <= 1; dy++ {
+			nx, ny := restrictToGrid(x+dx, y+dy)
+			if s.CreatureGrid[nx][ny] == nil {
+				return nx, ny, true
+			}
+		}
+	}
+	return -1, -1, false
+}
+
+func (s *State) PlaceNewCreature(c *Creature, nearPosition Positioner) (ok bool) {
+	s.CreatureList.PushBack(c)
+
+	x, y, ok := closestEmptyPosition(s, nearPosition.X(), nearPosition.Y())
+	if !ok {
+		return false
+	}
+
+	fmt.Println("placing", c, x, y)
+	c.xpos = x
+	c.ypos = y
+	s.CreatureGrid[x][y] = c
+
+	return true
 }
 
 func (s *State) Tick() {
@@ -96,10 +127,20 @@ func (s *State) Tick() {
 }
 
 func (s *State) TickCreature(c *Creature, celement *list.Element) {
-	s.CheckCreatureVitals(c, celement)
+	//TODO s.CheckCreatureVitals(c, celement)
 	s.MaybeMoveCreature(c)
-	s.TickCreatureCells(c)
-	//s.MaybeReproduceCreature(c)
+	//TODO s.TickCreatureCells(c)
+	//TODO s.MaybeReproduceCreature(c)
+}
+
+func (s *State) MaybeReproduceCreature(parent *Creature) {
+	if parent.Energy > parent.ReproductionCost()*2 {
+		child := parent.Reproduce()
+		ok := s.PlaceNewCreature(child, parent)
+		if !ok {
+			// TODO what to do if there is no space for creature?
+		}
+	}
 }
 
 func (s *State) CheckCreatureVitals(c *Creature, celement *list.Element) {
@@ -126,6 +167,7 @@ func (s *State) MaybeMoveCreature(c *Creature) {
 
 	// Where should it move?
 	x, y := calcDriftPos(c)
+	fmt.Printf("Ticking creature %v to pos %v,%v\n", c, x, y)
 
 	// Can it move there?
 	if s.CreatureGrid[x][y] != nil {
@@ -141,24 +183,27 @@ func (s *State) MaybeMoveCreature(c *Creature) {
 	s.CreatureGrid[x][y] = c
 }
 
+func restrictToGrid(x, y int) (nx, ny int) {
+	nx, ny = x, y
+	if x < 0 {
+		nx = 0
+	}
+	if x >= gridWidth {
+		nx = gridWidth - 1
+	}
+	if y < 0 {
+		ny = 0
+	}
+	if y >= gridHeight {
+		ny = gridHeight - 1
+	}
+	return nx, ny
+}
+
 func calcDriftPos(p Positioner) (x, y int) {
 	dx := rand.Intn(3) - 1 // in range [-1, 1]
 	dy := rand.Intn(3) - 1 // in range [-1, 1]
 	newX := p.X() + dx
 	newY := p.Y() + dy
-
-	if newX < 0 {
-		newX = 0
-	}
-	if newX >= gridWidth {
-		newX = gridWidth - 1
-	}
-	if newY < 0 {
-		newY = 0
-	}
-	if newY >= gridHeight {
-		newY = gridHeight - 1
-	}
-
-	return newX, newY
+	return restrictToGrid(newX, newY)
 }
