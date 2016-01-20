@@ -1,7 +1,5 @@
 package engine
 
-import "math/rand"
-
 type CellType byte
 
 const (
@@ -21,8 +19,8 @@ type Creature struct {
 	CellGrid [][]Cell
 	Width    int
 	Height   int
-	X        int
-	Y        int
+	xpos     int
+	ypos     int
 }
 
 func NewCreature(x, y int) *Creature {
@@ -37,27 +35,15 @@ func NewCreature(x, y int) *Creature {
 		CellGrid: g,
 		Width:    w,
 		Height:   h,
-		X:        x,
-		Y:        y,
+		xpos:     x,
+		ypos:     y,
 	}
 }
 
-func (c *Creature) Drift() {
-	dx := rand.Intn(3) - 1 // in range [-1, 1]
-	dy := rand.Intn(3) - 1 // in range [-1, 1]
-	c.X += dx
-	c.Y += dy
+func (c *Creature) X() int {
+	return c.xpos
+}
 
-	if c.X < 0 {
-		c.X = 0
-	}
-	if c.X >= gridWidth {
-		c.X = gridWidth - 1
-	}
-	if c.Y < 0 {
-		c.Y = 0
-	}
-	if c.Y >= gridHeight {
-		c.Y = gridHeight - 1
-	}
+func (c *Creature) Y() int {
+	return c.ypos
 }

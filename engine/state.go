@@ -54,7 +54,7 @@ func (s *State) UpdateCellGrid() {
 	}
 
 	for _, c := range s.Creatures {
-		s.CellGrid[c.X][c.Y] = 1 //TODO
+		s.CellGrid[c.xpos][c.ypos] = 1 //TODO
 	}
 }
 
@@ -80,6 +80,51 @@ func (s *State) Reset() {
 
 func (s *State) Tick() {
 	for _, c := range s.Creatures {
-		c.Drift()
+		s.TickCreature(c)
 	}
+}
+
+func (s *State) TickCreature(c *Creature) {
+	// Should it move?
+	if rand.Intn(2) == 0 {
+		return // Shouldn't move
+	}
+
+	// Where should it move?
+	x, y := calcDriftPos(c)
+
+	// Can it move there?
+	if s.CreatureGrid[x][y] != nil {
+		return // Can't move
+	}
+
+	// Move it there
+
+	// ORDERING: must update the creature's position after removing the creature from the grid
+	s.CreatureGrid[c.xpos][c.ypos] = nil
+	c.xpos = x
+	c.ypos = y
+	s.CreatureGrid[x][y] = c
+}
+
+func calcDriftPos(p Positioner) (x, y int) {
+	dx := rand.Intn(3) - 1 // in range [-1, 1]
+	dy := rand.Intn(3) - 1 // in range [-1, 1]
+	newX := p.X() + dx
+	newY := p.Y() + dy
+
+	if newX < 0 {
+		newX = 0
+	}
+	if newX >= gridWidth {
+		newX = gridWidth - 1
+	}
+	if newY < 0 {
+		newY = 0
+	}
+	if newY >= gridHeight {
+		newY = gridHeight - 1
+	}
+
+	return newX, newY
 }

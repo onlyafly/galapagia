@@ -65,10 +65,10 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 				}()
 			case "tick 30 times":
 				go func() {
-					for i := 0; i < 30; i++ {
+					for i := 0; i < 3000; i++ {
 						gs.Tick()
 						writeChan <- gs.CurrentCellGrid()
-						time.Sleep(500 * time.Millisecond)
+						time.Sleep(10 * time.Millisecond)
 					}
 				}()
 			default:
