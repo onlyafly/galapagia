@@ -31,6 +31,10 @@ export default React.createClass({
     this.dataWebSocket.send(JSON.stringify({command: "reset"}));
   },
 
+  handleClickTick30Times: function() {
+    this.dataWebSocket.send(JSON.stringify({command: "tick 30 times"}));
+  },
+
   render: function() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -40,9 +44,10 @@ export default React.createClass({
         <div>Info:
           <span>{this.state.info}</span>
         </div>
-        <button onClick={this.handleButtonClick}>Tick</button>
+        <button onClick={this.handleButtonClick}>Counter: Tick</button>
         <button onClick={this.handleClickShowCurrentGrid}>Show Current Grid</button>
         <button onClick={this.handleClickReset}>Reset</button>
+        <button onClick={this.handleClickTick30Times}>Tick 30 Times</button>
         <div>
           <BoardCanvas canvas={canvas} grid={this.state.grid} />
         </div>

@@ -20551,6 +20551,10 @@ exports.default = _react2.default.createClass({
     this.dataWebSocket.send(JSON.stringify({ command: "reset" }));
   },
 
+  handleClickTick30Times: function handleClickTick30Times() {
+    this.dataWebSocket.send(JSON.stringify({ command: "tick 30 times" }));
+  },
+
   render: function render() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -20575,7 +20579,7 @@ exports.default = _react2.default.createClass({
       _react2.default.createElement(
         'button',
         { onClick: this.handleButtonClick },
-        'Tick'
+        'Counter: Tick'
       ),
       _react2.default.createElement(
         'button',
@@ -20586,6 +20590,11 @@ exports.default = _react2.default.createClass({
         'button',
         { onClick: this.handleClickReset },
         'Reset'
+      ),
+      _react2.default.createElement(
+        'button',
+        { onClick: this.handleClickTick30Times },
+        'Tick 30 Times'
       ),
       _react2.default.createElement(
         'div',

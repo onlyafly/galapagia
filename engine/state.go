@@ -5,6 +5,12 @@ import (
 	"time"
 )
 
+const (
+	gridWidth         = 100
+	gridHeight        = 100
+	resetToNCreatures = 100
+)
+
 func init() {
 	rand.Seed(time.Now().UTC().UnixNano())
 }
@@ -19,9 +25,9 @@ func NewState() *State {
 }
 
 func (s *State) CurrentGrid() [][]int {
-	g := make([][]int, 100)
+	g := make([][]int, gridWidth)
 	for i, _ := range g {
-		g[i] = make([]int, 100)
+		g[i] = make([]int, gridHeight)
 	}
 
 	for _, c := range s.Creatures {
@@ -34,8 +40,14 @@ func (s *State) CurrentGrid() [][]int {
 func (s *State) Reset() {
 	s.Creatures = make([]*Creature, 0)
 
-	for i := 0; i < 100; i++ {
-		c := NewCreature(rand.Intn(100), rand.Intn(100))
+	for i := 0; i < resetToNCreatures; i++ {
+		c := NewCreature(rand.Intn(gridWidth), rand.Intn(gridHeight))
 		s.Creatures = append(s.Creatures, c)
+	}
+}
+
+func (s *State) Tick() {
+	for _, c := range s.Creatures {
+		c.Drift()
 	}
 }
