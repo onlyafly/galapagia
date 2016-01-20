@@ -56,18 +56,18 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 			switch j["command"] {
 			case "show current grid":
 				go func() {
-					writeChan <- gs.CurrentGrid()
+					writeChan <- gs.CurrentCellGrid()
 				}()
 			case "reset":
 				go func() {
 					gs.Reset()
-					writeChan <- gs.CurrentGrid()
+					writeChan <- gs.CurrentCellGrid()
 				}()
 			case "tick 30 times":
 				go func() {
 					for i := 0; i < 30; i++ {
 						gs.Tick()
-						writeChan <- gs.CurrentGrid()
+						writeChan <- gs.CurrentCellGrid()
 						time.Sleep(500 * time.Millisecond)
 					}
 				}()
