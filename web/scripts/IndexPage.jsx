@@ -1,9 +1,10 @@
 import React from 'react';
 import api from './api';
+import BoardCanvas from './BoardCanvas';
 
 export default React.createClass({
   getInitialState: function() {
-    return {counter: "", info: ""};
+    return {counter: "", info: "", grid: []};
   },
 
   componentDidMount: function() {
@@ -12,7 +13,7 @@ export default React.createClass({
       this.dataWebSocket.send(JSON.stringify({info: "Connection init"}));
     };
     this.dataWebSocket.onmessage = (e) => {
-      this.setState({info: e.data});
+      this.setState({grid: JSON.parse(e.data)});
     };
   },
 
@@ -27,6 +28,8 @@ export default React.createClass({
   },
 
   render: function() {
+    var canvas = document.getElementById('boardCanvasElement');
+
     return (
       <div>
         <div>{this.state.counter}</div>
@@ -35,6 +38,9 @@ export default React.createClass({
         </div>
         <button onClick={this.handleButtonClick}>Tick</button>
         <button onClick={this.handleSendSomethingClick}>SendSomething</button>
+        <div>
+          <BoardCanvas canvas={canvas} grid={this.state.grid} />
+        </div>
       </div>
     );
   }

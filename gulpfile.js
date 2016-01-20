@@ -68,7 +68,7 @@ gulp.task('server:watch', function() {
 
   // Restart application server
   gulp.watch([
-    'web/templates/**/*.tmpl'
+    'web/templates/**/*.tmpl.html'
   ], ['server:spawn']);
 
   // Rebuild and restart application server

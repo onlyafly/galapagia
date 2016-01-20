@@ -20433,13 +20433,94 @@ var _api = require('./api');
 
 var _api2 = _interopRequireDefault(_api);
 
+var _reactDom = require('react-dom');
+
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = _react2.default.createClass({
+  displayName: 'BoardCanvas',
+
+  componentDidMount: function componentDidMount() {
+    _reactDom2.default.findDOMNode(this).appendChild(this.props.canvas);
+    this.renderGrid();
+  },
+
+  componentDidUpdate: function componentDidUpdate(prevProps, prevState) {
+    this.renderGrid();
+  },
+
+  renderGrid: function renderGrid() {
+    var grid = this.props.grid;
+    var ctx = this.props.canvas.getContext("2d");
+
+    var cellWidth = 5;
+    var cellHeight = 5;
+    var xCells = 100;
+    var yCells = 100;
+    var xOffset = 3;
+    var yOffset = 3;
+
+    ctx.fillStyle = "rgb(200,200,200)";
+    ctx.fillRect(xOffset - 1, yOffset - 1, xCells * (cellWidth + 1) + 1, yCells * (cellHeight + 1) + 1);
+
+    if (grid.length >= xCells && grid[0].length >= yCells) {
+      for (var i = 0; i < xCells; i++) {
+        for (var j = 0; j < yCells; j++) {
+          var x = xOffset + (cellWidth + 1) * i;
+          var y = yOffset + (cellHeight + 1) * j;
+          var w = cellWidth;
+          var h = cellHeight;
+
+          switch (grid[i][j]) {
+            case 0:
+              ctx.fillStyle = "rgb(255,255,255)";
+              break;
+            case 1:
+              ctx.fillStyle = "rgb(200,0,0)";
+              break;
+            default:
+              ctx.fillStyle = "rgb(255,0,255)";
+          }
+          ctx.fillRect(x, y, w, h);
+        }
+      }
+    }
+  },
+
+  render: function render() {
+    return _react2.default.createElement('div', null);
+  }
+
+});
+
+},{"./api":164,"react":159,"react-dom":30}],163:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _react = require('react');
+
+var _react2 = _interopRequireDefault(_react);
+
+var _api = require('./api');
+
+var _api2 = _interopRequireDefault(_api);
+
+var _BoardCanvas = require('./BoardCanvas');
+
+var _BoardCanvas2 = _interopRequireDefault(_BoardCanvas);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 exports.default = _react2.default.createClass({
   displayName: 'IndexPage',
 
   getInitialState: function getInitialState() {
-    return { counter: "", info: "" };
+    return { counter: "", info: "", grid: [] };
   },
 
   componentDidMount: function componentDidMount() {
@@ -20450,7 +20531,7 @@ exports.default = _react2.default.createClass({
       _this.dataWebSocket.send(JSON.stringify({ info: "Connection init" }));
     };
     this.dataWebSocket.onmessage = function (e) {
-      _this.setState({ info: e.data });
+      _this.setState({ grid: JSON.parse(e.data) });
     };
   },
 
@@ -20467,6 +20548,8 @@ exports.default = _react2.default.createClass({
   },
 
   render: function render() {
+    var canvas = document.getElementById('boardCanvasElement');
+
     return _react2.default.createElement(
       'div',
       null,
@@ -20494,12 +20577,17 @@ exports.default = _react2.default.createClass({
         'button',
         { onClick: this.handleSendSomethingClick },
         'SendSomething'
+      ),
+      _react2.default.createElement(
+        'div',
+        null,
+        _react2.default.createElement(_BoardCanvas2.default, { canvas: canvas, grid: this.state.grid })
       )
     );
   }
 });
 
-},{"./api":163,"react":159}],163:[function(require,module,exports){
+},{"./BoardCanvas":162,"./api":164,"react":159}],164:[function(require,module,exports){
 'use strict';
 
 var _superagent = require('superagent');
@@ -20548,7 +20636,7 @@ exports.del = function (url, success, failure) {
   });
 };
 
-},{"superagent":161}],164:[function(require,module,exports){
+},{"superagent":161}],165:[function(require,module,exports){
 'use strict';
 
 var _routes = require('./routes');
@@ -20557,7 +20645,7 @@ var _routes2 = _interopRequireDefault(_routes);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-},{"./routes":165}],165:[function(require,module,exports){
+},{"./routes":166}],166:[function(require,module,exports){
 'use strict';
 
 var _react = require('react');
@@ -20577,4 +20665,4 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 _reactDom2.default.render(_react2.default.createElement(_IndexPage2.default, null), document.getElementById('generatedContent'));
 //import AboutPage from './AboutPage';
 
-},{"./IndexPage":162,"react":159,"react-dom":30}]},{},[164]);
+},{"./IndexPage":163,"react":159,"react-dom":30}]},{},[165]);
