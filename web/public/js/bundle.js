@@ -20547,6 +20547,10 @@ exports.default = _react2.default.createClass({
     this.dataWebSocket.send(JSON.stringify({ command: "show current grid" }));
   },
 
+  handleClickReset: function handleClickReset() {
+    this.dataWebSocket.send(JSON.stringify({ command: "reset" }));
+  },
+
   render: function render() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -20577,6 +20581,11 @@ exports.default = _react2.default.createClass({
         'button',
         { onClick: this.handleClickShowCurrentGrid },
         'Show Current Grid'
+      ),
+      _react2.default.createElement(
+        'button',
+        { onClick: this.handleClickReset },
+        'Reset'
       ),
       _react2.default.createElement(
         'div',

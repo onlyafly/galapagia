@@ -27,6 +27,10 @@ export default React.createClass({
     this.dataWebSocket.send(JSON.stringify({command: "show current grid"}));
   },
 
+  handleClickReset: function() {
+    this.dataWebSocket.send(JSON.stringify({command: "reset"}));
+  },
+
   render: function() {
     var canvas = document.getElementById('boardCanvasElement');
 
@@ -38,6 +42,7 @@ export default React.createClass({
         </div>
         <button onClick={this.handleButtonClick}>Tick</button>
         <button onClick={this.handleClickShowCurrentGrid}>Show Current Grid</button>
+        <button onClick={this.handleClickReset}>Reset</button>
         <div>
           <BoardCanvas canvas={canvas} grid={this.state.grid} />
         </div>

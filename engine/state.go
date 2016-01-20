@@ -1,18 +1,41 @@
 package engine
 
+import (
+	"math/rand"
+	"time"
+)
+
+func init() {
+	rand.Seed(time.Now().UTC().UnixNano())
+}
+
 type State struct {
+	Creatures []*Creature
 }
 
 func NewState() *State {
-	return &State{}
+	cs := make([]*Creature, 0)
+	return &State{Creatures: cs}
 }
 
-func CurrentGrid() [][]int {
+func (s *State) CurrentGrid() [][]int {
 	g := make([][]int, 100)
 	for i, _ := range g {
 		g[i] = make([]int, 100)
 	}
-	g[1][20] = 1
-	g[1][21] = 2
+
+	for _, c := range s.Creatures {
+		g[c.X][c.Y] = 1
+	}
+
 	return g
+}
+
+func (s *State) Reset() {
+	s.Creatures = make([]*Creature, 0)
+
+	for i := 0; i < 100; i++ {
+		c := NewCreature(rand.Intn(100), rand.Intn(100))
+		s.Creatures = append(s.Creatures, c)
+	}
 }

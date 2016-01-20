@@ -25,7 +25,17 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 			switch j["command"] {
 			case "show current grid":
 				go func() {
-					j := engine.CurrentGrid()
+					j := gs.CurrentGrid()
+					err = conn.WriteJSON(j)
+					if err != nil {
+						fmt.Println("Error writing JSON:", err)
+						return
+					}
+				}()
+			case "reset":
+				go func() {
+					gs.Reset()
+					j := gs.CurrentGrid()
 					err = conn.WriteJSON(j)
 					if err != nil {
 						fmt.Println("Error writing JSON:", err)
