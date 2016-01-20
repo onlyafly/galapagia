@@ -9,6 +9,32 @@ import (
 	"galapagia/Godeps/_workspace/src/github.com/gorilla/websocket"
 )
 
+func generateStateAccessChannels() (commandChan chan<- string, dataChan <-chan [][]int) {
+	commands := make(chan string)
+	data := make(chan [][]int)
+	s := engine.NewState()
+
+	go func() {
+		for {
+			m := <-commands
+			switch m {
+			case "log":
+				s.LogCreatures()
+			case "tick":
+				s.Tick()
+			case "reset":
+				s.Reset()
+			case "grid":
+				data <- s.CurrentCellGrid()
+			default:
+				fmt.Println("Unrecognized state access command", m)
+			}
+		}
+	}()
+
+	return commands, data
+}
+
 /*
 Connections support one concurrent reader and one concurrent writer.
 Applications are responsible for ensuring that no more than one goroutine calls
@@ -33,7 +59,9 @@ func generateConnWriter(conn *websocket.Conn) chan<- interface{} {
 	return c
 }
 
-func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
+func dataWebSocketHandler() http.HandlerFunc {
+	commandChan, dataChan := generateStateAccessChannels()
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
@@ -56,24 +84,27 @@ func dataWebSocketHandler(gs *engine.State) http.HandlerFunc {
 			switch j["command"] {
 			case "show current grid":
 				go func() {
-					writeChan <- gs.CurrentCellGrid()
+					commandChan <- "grid"
+					writeChan <- <-dataChan
 				}()
 			case "reset":
 				go func() {
-					gs.Reset()
-					writeChan <- gs.CurrentCellGrid()
+					commandChan <- "reset"
+					commandChan <- "grid"
+					writeChan <- <-dataChan
 				}()
 			case "tick 30 times":
 				go func() {
-					for i := 0; i < 1; i++ {
-						gs.Tick()
-						writeChan <- gs.CurrentCellGrid()
+					for i := 0; i < 3000; i++ {
+						commandChan <- "tick"
+						commandChan <- "grid"
+						writeChan <- <-dataChan
 						time.Sleep(10 * time.Millisecond)
 					}
 				}()
 			case "log data":
 				go func() {
-					gs.LogCreatures()
+					commandChan <- "log"
 				}()
 			default:
 				fmt.Println("Unrecognized command:", j)

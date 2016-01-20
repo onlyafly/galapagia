@@ -5,15 +5,12 @@ import (
 	"html/template"
 	"net/http"
 
-	"galapagia/engine"
-
 	"galapagia/Godeps/_workspace/src/github.com/gorilla/mux"
 	"galapagia/Godeps/_workspace/src/github.com/gorilla/websocket"
 )
 
 var (
 	templates *template.Template
-	state     *engine.State
 	counter   int
 )
 
@@ -77,12 +74,11 @@ func echoHandler(w http.ResponseWriter, r *http.Request) {
 
 func ServeSite() {
 	templates = template.Must(template.New("").ParseGlob("web/templates/*")) // compile all templates and cache them
-	state = engine.NewState()
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.Methods("GET").Path("/echo").HandlerFunc(echoHandler)
 	router.Methods("GET").Path("/").HandlerFunc(homeHandler)
-	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(dataWebSocketHandler(state))
+	router.Methods("GET").Path("/api/dataWebSocket").HandlerFunc(dataWebSocketHandler())
 	router.Methods("GET").Path("/api/tick").HandlerFunc(handleGetTick)
 
 	// Serve all static files

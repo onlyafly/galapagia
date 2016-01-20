@@ -81,9 +81,7 @@ func (s *State) Reset() {
 		x := rand.Intn(gridWidth)
 		y := rand.Intn(gridHeight)
 		c := NewCreature(x, y)
-		fmt.Println("reset unplaced", c, x, y)
 		s.PlaceNewCreature(c, Pos{x, y})
-		fmt.Println("reset placed", c, x, y)
 	}
 }
 
@@ -111,7 +109,6 @@ func (s *State) PlaceNewCreature(c *Creature, nearPosition Positioner) (ok bool)
 		return false
 	}
 
-	fmt.Println("placing", c, x, y)
 	c.xpos = x
 	c.ypos = y
 	s.CreatureGrid[x][y] = c
@@ -127,10 +124,10 @@ func (s *State) Tick() {
 }
 
 func (s *State) TickCreature(c *Creature, celement *list.Element) {
-	//TODO s.CheckCreatureVitals(c, celement)
+	s.CheckCreatureVitals(c, celement)
 	s.MaybeMoveCreature(c)
-	//TODO s.TickCreatureCells(c)
-	//TODO s.MaybeReproduceCreature(c)
+	s.TickCreatureCells(c)
+	s.MaybeReproduceCreature(c)
 }
 
 func (s *State) MaybeReproduceCreature(parent *Creature) {
@@ -167,7 +164,6 @@ func (s *State) MaybeMoveCreature(c *Creature) {
 
 	// Where should it move?
 	x, y := calcDriftPos(c)
-	fmt.Printf("Ticking creature %v to pos %v,%v\n", c, x, y)
 
 	// Can it move there?
 	if s.CreatureGrid[x][y] != nil {
