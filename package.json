@@ -18,6 +18,7 @@
     "gulp-livereload": "^3.8.1",
     "gulp-plumber": "^1.0.1",
     "gulp-sync": "^0.1.4",
+    "gulp-util": "^3.0.7",
     "react": "^0.14.6",
     "react-dom": "^0.14.6",
     "superagent": "^1.6.1",
