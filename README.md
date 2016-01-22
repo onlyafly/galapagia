@@ -2,6 +2,12 @@
 
 An artificial evolution simulator, for simulating concepts of evolution on artificial life.
 
+## Setup
+
+### Install all NPM packages
+
+    $ sudo npm install
+
 ## Developing
 
 ### Starting the app
