@@ -12,18 +12,18 @@ import (
 func generateStateAccessChannels() (commandChan chan<- string, dataChan <-chan [][]int) {
 	commands := make(chan string)
 	data := make(chan [][]int)
-	s := engine.NewState()
+	s := engine.NewState(100, 100)
 
 	go func() {
 		for {
 			m := <-commands
 			switch m {
 			case "log":
-				s.LogCreatures()
+				s.LogBugs()
 			case "tick":
 				s.Tick()
 			case "reset":
-				s.Reset()
+				s.Reset(100)
 			case "grid":
 				data <- s.CurrentCellGrid()
 			default:
