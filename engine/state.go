@@ -89,9 +89,29 @@ func (s *State) LogBugs() {
 	}
 }
 
+// TODO eventually update this to check for actual intersections of cells, not just the bounding box
 func hasIntersections(rt *rtreego.Rtree, r *rtreego.Rect) bool {
 	results := rt.SearchIntersect(r)
 	return len(results) > 0
+}
+
+// TODO eventually update this to check for actual intersections of cells, not just the bounding box
+
+// Check if there any entities in rt that intersect the Rect r, ignoring the spatial entity s.
+func hasIntersectionsOtherThanSelf(rt *rtreego.Rtree, r *rtreego.Rect, self rtreego.Spatial) bool {
+	results := rt.SearchIntersect(r)
+	switch {
+	case len(results) == 0:
+		return false // intersects nothing
+	case len(results) == 1:
+		if results[0] == self {
+			return false // intersects only itself
+		} else {
+			return true // intersects another entity
+		}
+	default:
+		return true // intersects more than one entity
+	}
 }
 
 func closestEmptyPosition(s *State, r *rtreego.Rect) (nx int, ny int, ok bool) {
@@ -185,21 +205,26 @@ func (s *State) MaybeMoveBug(b *Bug) {
 		return // Shouldn't move
 	}
 
-	// Where should it move?
-	x, y := calcDriftPos(s, b)
+	// Where should it try to move?
+	x, y := calcRandomDriftPos(s, b)
 
 	// Can it move there?
-	if s.BugGrid[x][y] != nil {
+	potentialDriftRect := nativeCoordsToRtreeRect(x, y, b.width, b.height)
+	if hasIntersectionsOtherThanSelf(s.BugTree, potentialDriftRect, b) {
 		return // Can't move
 	}
 
-	// Move it there
+	// Remove the bug from its old location
+	s.BugGrid[b.xpos][b.ypos] = nil // TODO: is BugGrid needed at all???
+	s.BugTree.Delete(b)
 
-	// ORDERING: must update the bug's position after removing the bug from the grid
-	s.BugGrid[b.xpos][b.ypos] = nil
+	// Update the bug's location
 	b.xpos = x
 	b.ypos = y
+
+	// Insert the bug at its new location
 	s.BugGrid[x][y] = b
+	s.BugTree.Insert(b)
 }
 
 func restrictToGrid(gridSize Sizer, x, y, w, h int) (nx, ny int) {
@@ -219,7 +244,7 @@ func restrictToGrid(gridSize Sizer, x, y, w, h int) (nx, ny int) {
 	return nx, ny
 }
 
-func calcDriftPos(gridSize Sizer, s SquareOnPlane) (x, y int) {
+func calcRandomDriftPos(gridSize Sizer, s SquareOnPlane) (x, y int) {
 	dx := rand.Intn(3) - 1 // in range [-1, 1]
 	dy := rand.Intn(3) - 1 // in range [-1, 1]
 	newX := s.X() + dx

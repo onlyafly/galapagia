@@ -16,6 +16,11 @@ func positionerToRtreePoint(p Positioner) rtreego.Point {
 	return rtreego.Point{float64(p.X()), float64(p.Y())}
 }
 
+func nativeCoordsToRtreeRect(x, y, w, h int) *rtreego.Rect {
+	r, _ := rtreego.NewRect(rtreego.Point{float64(x), float64(y)}, []float64{float64(w), float64(h)})
+	return r
+}
+
 type SquareOnPlane interface {
 	Positioner
 	W() int
