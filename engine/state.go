@@ -95,8 +95,6 @@ func hasIntersections(rt *rtreego.Rtree, r *rtreego.Rect) bool {
 	return len(results) > 0
 }
 
-// TODO eventually update this to check for actual intersections of cells, not just the bounding box
-
 // Check if there any entities in rt that intersect the Rect r, ignoring the spatial entity s.
 func hasIntersectionsOtherThanSelf(rt *rtreego.Rtree, r *rtreego.Rect, self rtreego.Spatial) bool {
 	results := rt.SearchIntersect(r)
@@ -143,11 +141,6 @@ func (s *State) PlaceNewBug(b *Bug, nearPosition Positioner) (ok bool) {
 		return false
 	}
 
-	// TODO temporary debugging
-	if x > 97 || y > 97 {
-		fmt.Println("PlaceNewBug UH OH", b)
-	}
-
 	s.BugList.PushBack(b)
 	b.xpos = x
 	b.ypos = y
@@ -190,13 +183,20 @@ func (s *State) CheckBugVitals(b *Bug, celement *list.Element) {
 }
 
 func (s *State) TickBugCells(b *Bug) {
-	// TODO tick the cells in the actual bug
+	for _, column := range b.CellGrid {
+		for _, cell := range column {
+			// Consumed energy for this tick
+			b.Energy -= int(cell.Value / 100)
 
-	// Consumed energy for this tick
-	b.Energy -= int(b.CellGrid[0][0].Value / 100)
-
-	// Gained energy for this tick
-	b.Energy += int(b.CellGrid[0][0].Value / 10)
+			switch cell.Type {
+			case cellTypeAbsorb:
+				// Gained energy for this tick
+				b.Energy += int(cell.Value / 10)
+			default:
+				// Nothing
+			}
+		}
+	}
 }
 
 func (s *State) MaybeMoveBug(b *Bug) {
