@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"galapagia/Godeps/_workspace/src/github.com/dhconnelly/rtreego"
 )
 
 func init() {
@@ -14,24 +16,47 @@ func init() {
 type State struct {
 	BugList      *list.List
 	BugGrid      [][]*Bug
+	BugTree      *rtreego.Rtree
 	GridWidth    int
 	GridHeight   int
 	ResetToNBugs int
 }
 
 func NewState(gridWidth, gridHeight int) *State {
-	cl := list.New()
+	bl := list.New()
 
-	crg := make([][]*Bug, gridWidth)
-	for i, _ := range crg {
-		crg[i] = make([]*Bug, gridHeight)
+	bg := make([][]*Bug, gridWidth)
+	for i, _ := range bg {
+		bg[i] = make([]*Bug, gridHeight)
 	}
 
+	bt := rtreego.NewTree(2, 25, 50)
+
 	return &State{
-		BugList:    cl,
-		BugGrid:    crg,
+		BugList:    bl,
+		BugGrid:    bg,
+		BugTree:    bt,
 		GridWidth:  gridWidth,
 		GridHeight: gridHeight,
+	}
+}
+
+func (s *State) Reset(initialBugCount int) {
+	s.BugList = list.New()
+
+	for i := 0; i < s.GridWidth; i++ {
+		for j := 0; j < s.GridHeight; j++ {
+			s.BugGrid[i][j] = nil
+		}
+	}
+
+	s.BugTree = rtreego.NewTree(2, 25, 50)
+
+	for i := 0; i < initialBugCount; i++ {
+		x := rand.Intn(s.GridWidth)
+		y := rand.Intn(s.GridHeight)
+		b := NewBug(x, y)
+		s.PlaceNewBug(b, Pos{x, y})
 	}
 }
 
@@ -59,34 +84,31 @@ func (s *State) CurrentCellGrid() [][]int {
 
 func (s *State) LogBugs() {
 	for e := s.BugList.Front(); e != nil; e = e.Next() {
-		c := e.Value.(*Bug)
-		fmt.Println("Bug", c)
+		b := e.Value.(*Bug)
+		fmt.Println("Bug", b)
 	}
 }
 
-func (s *State) Reset(initialBugCount int) {
-	s.BugList = list.New()
-
-	for i := 0; i < s.GridWidth; i++ {
-		for j := 0; j < s.GridHeight; j++ {
-			s.BugGrid[i][j] = nil
-		}
-	}
-
-	for i := 0; i < initialBugCount; i++ {
-		x := rand.Intn(s.GridWidth)
-		y := rand.Intn(s.GridHeight)
-		c := NewBug(x, y)
-		s.PlaceNewBug(c, Pos{x, y})
-	}
+func hasIntersections(rt *rtreego.Rtree, r *rtreego.Rect) bool {
+	results := rt.SearchIntersect(r)
+	return len(results) > 0
 }
 
-func closestEmptyPosition(s *State, x, y, w, h int) (nx int, ny int, ok bool) {
-	for dx := -1; dx <= 1; dx++ {
-		for dy := -1; dy <= 1; dy++ {
+func closestEmptyPosition(s *State, r *rtreego.Rect) (nx int, ny int, ok bool) {
+	x := int(r.PointCoord(0))
+	y := int(r.PointCoord(1))
+	w := int(r.LengthsCoord(0))
+	h := int(r.LengthsCoord(1))
+
+	// These loops try to place the creature at distances at least far enough away to
+	// avoid intersecting it
+	for dx := -w; dx <= w; dx += w {
+		for dy := -h; dy <= h; dy += h {
 			nx, ny := restrictToGrid(s, x+dx, y+dy, w, h)
-			// TODO: this needs to check intersection with other bugs
-			if s.BugGrid[nx][ny] == nil {
+
+			restrictedRect, _ := rtreego.NewRect(rtreego.Point{float64(nx), float64(ny)}, []float64{r.LengthsCoord(0), float64(r.LengthsCoord(1))})
+
+			if !hasIntersections(s.BugTree, restrictedRect) {
 				return nx, ny, true
 			}
 		}
@@ -94,36 +116,39 @@ func closestEmptyPosition(s *State, x, y, w, h int) (nx int, ny int, ok bool) {
 	return -1, -1, false
 }
 
-func (s *State) PlaceNewBug(c *Bug, nearPosition Positioner) (ok bool) {
-	x, y, ok := closestEmptyPosition(s, nearPosition.X(), nearPosition.Y(), c.W(), c.H())
+func (s *State) PlaceNewBug(b *Bug, nearPosition Positioner) (ok bool) {
+	desiredRect, _ := rtreego.NewRect(positionerToRtreePoint(nearPosition), []float64{float64(b.W()), float64(b.H())})
+	x, y, ok := closestEmptyPosition(s, desiredRect)
 	if !ok {
 		return false
 	}
 
+	// TODO temporary debugging
 	if x > 97 || y > 97 {
-		fmt.Println("PlaceNewBug UH OH", c)
+		fmt.Println("PlaceNewBug UH OH", b)
 	}
 
-	s.BugList.PushBack(c)
-	c.xpos = x
-	c.ypos = y
-	s.BugGrid[x][y] = c
+	s.BugList.PushBack(b)
+	b.xpos = x
+	b.ypos = y
+	s.BugGrid[x][y] = b
+	s.BugTree.Insert(b)
 
 	return true
 }
 
 func (s *State) Tick() {
 	for e := s.BugList.Front(); e != nil; e = e.Next() {
-		c := e.Value.(*Bug)
-		s.TickBug(c, e)
+		b := e.Value.(*Bug)
+		s.TickBug(b, e)
 	}
 }
 
-func (s *State) TickBug(c *Bug, celement *list.Element) {
-	s.CheckBugVitals(c, celement)
-	s.MaybeMoveBug(c)
-	s.TickBugCells(c)
-	s.MaybeReproduceBug(c)
+func (s *State) TickBug(b *Bug, celement *list.Element) {
+	s.CheckBugVitals(b, celement)
+	s.MaybeMoveBug(b)
+	s.TickBugCells(b)
+	s.MaybeReproduceBug(b)
 }
 
 func (s *State) MaybeReproduceBug(parent *Bug) {
@@ -136,32 +161,32 @@ func (s *State) MaybeReproduceBug(parent *Bug) {
 	}
 }
 
-func (s *State) CheckBugVitals(c *Bug, celement *list.Element) {
-	if c.Energy <= 0 {
+func (s *State) CheckBugVitals(b *Bug, celement *list.Element) {
+	if b.Energy <= 0 {
 		// Kill bug
-		s.BugGrid[c.xpos][c.ypos] = nil
+		s.BugGrid[b.xpos][b.ypos] = nil
 		s.BugList.Remove(celement)
 	}
 }
 
-func (s *State) TickBugCells(c *Bug) {
+func (s *State) TickBugCells(b *Bug) {
 	// TODO tick the cells in the actual bug
 
 	// Consumed energy for this tick
-	c.Energy -= int(c.CellGrid[0][0].Value / 100)
+	b.Energy -= int(b.CellGrid[0][0].Value / 100)
 
 	// Gained energy for this tick
-	c.Energy += int(c.CellGrid[0][0].Value / 10)
+	b.Energy += int(b.CellGrid[0][0].Value / 10)
 }
 
-func (s *State) MaybeMoveBug(c *Bug) {
+func (s *State) MaybeMoveBug(b *Bug) {
 	// Should it move?
 	if rand.Intn(2) == 0 {
 		return // Shouldn't move
 	}
 
 	// Where should it move?
-	x, y := calcDriftPos(s, c)
+	x, y := calcDriftPos(s, b)
 
 	// Can it move there?
 	if s.BugGrid[x][y] != nil {
@@ -171,10 +196,10 @@ func (s *State) MaybeMoveBug(c *Bug) {
 	// Move it there
 
 	// ORDERING: must update the bug's position after removing the bug from the grid
-	s.BugGrid[c.xpos][c.ypos] = nil
-	c.xpos = x
-	c.ypos = y
-	s.BugGrid[x][y] = c
+	s.BugGrid[b.xpos][b.ypos] = nil
+	b.xpos = x
+	b.ypos = y
+	s.BugGrid[x][y] = b
 }
 
 func restrictToGrid(gridSize Sizer, x, y, w, h int) (nx, ny int) {

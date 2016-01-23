@@ -1,6 +1,10 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+
+	"galapagia/Godeps/_workspace/src/github.com/dhconnelly/rtreego"
+)
 
 type CellType byte
 
@@ -75,6 +79,15 @@ func (c *Bug) String() string {
 func (c *Bug) ReproductionCost() int {
 	// TODO calculate this based on the cells in the bug
 	return 1000
+}
+
+// Required for the Spatial interface from rtreego
+func (b *Bug) Bounds() *rtreego.Rect {
+	r, _ := rtreego.NewRect(
+		rtreego.Point{float64(b.xpos), float64(b.ypos)},
+		[]float64{float64(b.width), float64(b.height)},
+	)
+	return r
 }
 
 func (parent *Bug) Reproduce() *Bug {

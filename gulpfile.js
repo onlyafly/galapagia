@@ -17,12 +17,21 @@ var server = null;
 
 // Build application server
 gulp.task('server:build', function() {
+  // Update the project if any dependencies have been added
+
+  result = child.spawnSync('godep', ['save', '-r', './...']);
+  if (result.status !== 0) {
+    gulpUtil.log(gulpUtil.colors.red('Error during "godep save": ' + result.stderr));
+    gulpUtil.beep();
+    return result;
+  }
+
   // Build is performed synchronously via spawnSync, as we have to wait for
   // the build to complete before restarting the application server.
-  result = child.spawnSync('go', ['install', './...']);
 
+  result = child.spawnSync('go', ['install', './...']);
   if (result.status !== 0) {
-    gulpUtil.log(gulpUtil.colors.red(result.stderr));
+    gulpUtil.log(gulpUtil.colors.red('Error during "go install": ' + result.stderr));
     gulpUtil.beep();
   }
 
