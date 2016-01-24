@@ -1,7 +1,7 @@
-# Goal 0: Check-in to github
+# Phase 1: Generatable body plans
 
+# Phase 2: Evolution of body plans
 
+# Phase 3: Evolution of behavior
 
-# Goal 1: A server with ongoing processes talking to a web client
-
-# Goal 2: A GUI on the web powered by React
+- Generate a neural network between inputs (sight cells) and outputs (movement cells), where the NN variables are genetically determined

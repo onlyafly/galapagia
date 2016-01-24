@@ -16,7 +16,7 @@ func Test_restrictToGrid(t *testing.T) {
 	}
 
 	x, y = restrictToGrid(Size{100, 100}, 99, 99, 3, 3)
-	if x != 97 || y != 96 {
+	if x != 97 || y != 97 {
 		t.Error("Expected 97,97", x, y)
 	}
 }

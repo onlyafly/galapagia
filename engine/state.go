@@ -6,6 +6,8 @@ import (
 	"math/rand"
 	"time"
 
+	"galapagia/engine/micro"
+
 	"galapagia/Godeps/_workspace/src/github.com/dhconnelly/rtreego"
 )
 
@@ -74,7 +76,7 @@ func (s *State) CurrentCellGrid() [][]int {
 
 		for i := 0; i < b.W(); i++ {
 			for j := 0; j < b.H(); j++ {
-				cellg[b.xpos+i][b.ypos+j] = int(b.CellGrid[i][j].Type)
+				cellg[b.xpos+i][b.ypos+j] = int(b.Body[i][j].Type)
 			}
 		}
 	}
@@ -183,13 +185,13 @@ func (s *State) CheckBugVitals(b *Bug, celement *list.Element) {
 }
 
 func (s *State) TickBugCells(b *Bug) {
-	for _, column := range b.CellGrid {
+	for _, column := range b.Body {
 		for _, cell := range column {
 			// Consumed energy for this tick
 			b.Energy -= int(cell.Value / 100)
 
 			switch cell.Type {
-			case cellTypeAbsorb:
+			case micro.CellTypeAbsorb:
 				// Gained energy for this tick
 				b.Energy += int(cell.Value / 10)
 			default:
