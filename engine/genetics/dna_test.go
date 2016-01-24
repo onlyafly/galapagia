@@ -48,6 +48,48 @@ func Test_bodyPlanTreeToCellGrid(t *testing.T) {
 	}
 	g = bodyPlanTreeToCellGrid(sequenceToBodyPlanTree(s))
 	assertEqual(t, g.String(), "<nil> <nil> <nil> \n<nil> cell<1,1> cell<1,4> \n<nil> <nil> <nil> \n")
+
+	s = []byte{
+		markerCellTypeAbsorb, 1,
+		markerCellTypeAbsorb, 2,
+		markerCellTypeAbsorb, 21,
+		markerNoChild, 21,
+		markerNoChild, 21,
+		markerNoChild, 21,
+		markerNoChild, 21,
+		markerNoChild, 22,
+		markerNoChild, 23,
+		markerNoChild, 24,
+		markerCellTypeAbsorb, 3,
+		markerNoChild, 31,
+		markerCellTypeAbsorb, 32,
+		markerNoChild, 32,
+		markerNoChild, 32,
+		markerNoChild, 32,
+		markerNoChild, 32,
+		markerNoChild, 33,
+		markerNoChild, 34,
+		markerCellTypeAbsorb, 4,
+		markerNoChild, 41,
+		markerNoChild, 42,
+		markerCellTypeAbsorb, 43,
+		markerNoChild, 43,
+		markerNoChild, 43,
+		markerNoChild, 43,
+		markerNoChild, 43,
+		markerNoChild, 44,
+		markerCellTypeAbsorb, 5,
+		markerNoChild, 51,
+		markerNoChild, 52,
+		markerNoChild, 53,
+		markerCellTypeAbsorb, 54,
+		markerNoChild, 54,
+		markerNoChild, 54,
+		markerNoChild, 54,
+		markerNoChild, 54,
+	}
+	g = bodyPlanTreeToCellGrid(sequenceToBodyPlanTree(s))
+	assertEqual(t, g.String(), "<nil> <nil> <nil> \n<nil> cell<1,1> cell<1,4> \n<nil> <nil> <nil> \n")
 }
 
 func Test_sequenceToBodyPlanTree(t *testing.T) {
