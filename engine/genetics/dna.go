@@ -2,18 +2,22 @@ package genetics
 
 import (
 	"fmt"
-	"galapagia/engine"
 	"galapagia/engine/micro"
+	"math/rand"
 )
 
 type Sequence []byte
 
-func EncodeBug(s Sequence) *engine.Bug {
-	return nil
+func RandomSequence(pairs int) Sequence {
+	bs := make([]byte, pairs*2)
+	for i, _ := range bs {
+		bs[i] = byte(rand.Intn(255))
+	}
+	return bs
 }
 
 const (
-	uniqueMarkerCount = 7
+	uniqueMarkerCount = 6
 )
 
 const (
@@ -158,7 +162,7 @@ func bodyPlanTreeToCellGrid(n *bodyPlanNode, depth int) micro.CellGrid {
 	return g
 }
 
-func sequenceToCellGrid(s Sequence) micro.CellGrid {
+func SequenceToCellGrid(s Sequence) micro.CellGrid {
 	bpt, depth := sequenceToBodyPlanTree(s)
 	cg := bodyPlanTreeToCellGrid(bpt, depth)
 	return cg

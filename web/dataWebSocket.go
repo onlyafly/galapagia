@@ -23,7 +23,7 @@ func generateStateAccessChannels() (commandChan chan<- string, dataChan <-chan [
 			case "tick":
 				s.Tick()
 			case "reset":
-				s.Reset(100)
+				s.Reset(1)
 			case "grid":
 				data <- s.CurrentCellGrid()
 			default:

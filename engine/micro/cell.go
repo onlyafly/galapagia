@@ -8,7 +8,8 @@ import (
 type CellType byte
 
 const (
-	CellTypePlain CellType = iota
+	CellTypeNil CellType = iota
+	CellTypePlain
 	CellTypeAbsorb
 	CellTypeAttack
 	CellTypeDefend

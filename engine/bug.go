@@ -3,18 +3,36 @@ package engine
 import (
 	"fmt"
 
+	"galapagia/engine/genetics"
 	"galapagia/engine/micro"
 
 	"galapagia/Godeps/_workspace/src/github.com/dhconnelly/rtreego"
 )
 
 type Bug struct {
+	Genome genetics.Sequence
 	Body   micro.CellGrid
 	width  int
 	height int
 	xpos   int
 	ypos   int
 	Energy int
+}
+
+func NewRandomBug(x, y int) *Bug {
+	s := genetics.RandomSequence(37)
+	g := genetics.SequenceToCellGrid(s)
+	size := len(g)
+
+	return &Bug{
+		Genome: s,
+		Body:   g,
+		width:  size,
+		height: size,
+		xpos:   x,
+		ypos:   y,
+		Energy: 100, // TODO
+	}
 }
 
 func NewBug(x, y int) *Bug {
@@ -56,7 +74,7 @@ func (c *Bug) H() int {
 }
 
 func (c *Bug) String() string {
-	return fmt.Sprintf("c<e=%v,x=%v,y=%v>", c.Energy, c.xpos, c.ypos)
+	return fmt.Sprintf("c<e=%v,x=%v,y=%v,w=%v,h=%v>", c.Energy, c.xpos, c.ypos, c.width, c.height)
 }
 
 func (c *Bug) ReproductionCost() int {

@@ -57,7 +57,7 @@ func (s *State) Reset(initialBugCount int) {
 	for i := 0; i < initialBugCount; i++ {
 		x := rand.Intn(s.GridWidth)
 		y := rand.Intn(s.GridHeight)
-		b := NewBug(x, y)
+		b := NewRandomBug(x, y)
 		s.PlaceNewBug(b, Pos{x, y})
 	}
 }
@@ -73,10 +73,14 @@ func (s *State) CurrentCellGrid() [][]int {
 
 	for e := s.BugList.Front(); e != nil; e = e.Next() {
 		b := e.Value.(*Bug)
+		fmt.Printf("b,b.Genome,b.Body %v %v %v\n", b, b.Genome, b.Body)
 
 		for i := 0; i < b.W(); i++ {
 			for j := 0; j < b.H(); j++ {
-				cellg[b.xpos+i][b.ypos+j] = int(b.Body[i][j].Type)
+				cell := b.Body[i][j]
+				if cell != nil {
+					cellg[b.xpos+i][b.ypos+j] = int(cell.Type)
+				}
 			}
 		}
 	}
@@ -187,15 +191,17 @@ func (s *State) CheckBugVitals(b *Bug, celement *list.Element) {
 func (s *State) TickBugCells(b *Bug) {
 	for _, column := range b.Body {
 		for _, cell := range column {
-			// Consumed energy for this tick
-			b.Energy -= int(cell.Value / 100)
+			if cell != nil {
+				// Consumed energy for this tick
+				b.Energy -= int(cell.Value / 100)
 
-			switch cell.Type {
-			case micro.CellTypeAbsorb:
-				// Gained energy for this tick
-				b.Energy += int(cell.Value / 10)
-			default:
-				// Nothing
+				switch cell.Type {
+				case micro.CellTypeAbsorb:
+					// Gained energy for this tick
+					b.Energy += int(cell.Value / 10)
+				default:
+					// Nothing
+				}
 			}
 		}
 	}
