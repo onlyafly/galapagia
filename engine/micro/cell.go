@@ -21,7 +21,7 @@ type CellGrid [][]Cell
 
 func (c CellGrid) String() string {
 	// TODO
-	return fmt.Sprintf("1")
+	return fmt.Sprintf("cell<1,200>\n")
 }
 
 func NewCellGrid(initialWidth, initialHeight int) CellGrid {

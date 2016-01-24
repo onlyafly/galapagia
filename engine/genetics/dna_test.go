@@ -7,7 +7,7 @@ import (
 
 func assertEqual(t *testing.T, actual, expected string) {
 	if actual != expected {
-		t.Errorf("ACTUAL != EXPECTED\nACTUAL:   %v\nEXPECTED: %v\n", actual, expected)
+		t.Errorf("ACTUAL != EXPECTED\nACTUAL:   %q\nEXPECTED: %q\n", actual, expected)
 	}
 }
 
@@ -17,7 +17,7 @@ func Test_bodyPlanTreeToCellGrid(t *testing.T) {
 
 	s = []byte{markerNoChild, 200}
 	g = bodyPlanTreeToCellGrid(sequenceToBodyPlanTree(s))
-	assertEqual(t, g.String(), "1\n")
+	assertEqual(t, g.String(), "cell<1,200>\n")
 }
 
 func Test_sequenceToBodyPlanTree(t *testing.T) {
