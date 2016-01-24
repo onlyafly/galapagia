@@ -23,11 +23,11 @@ func NewBug(x, y int) *Bug {
 
 	g := micro.NewCellGrid(w, h)
 
-	g[1][0] = micro.Cell{micro.CellTypeAttack, 127}
-	g[0][1] = micro.Cell{micro.CellTypeAttack, 127}
-	g[1][1] = micro.Cell{micro.CellTypeAbsorb, 127}
-	g[2][1] = micro.Cell{micro.CellTypeAttack, 127}
-	g[1][2] = micro.Cell{micro.CellTypeAttack, 127}
+	g[1][0] = &micro.Cell{Type: micro.CellTypeAttack, Value: 127}
+	g[0][1] = &micro.Cell{Type: micro.CellTypeAttack, Value: 127}
+	g[1][1] = &micro.Cell{Type: micro.CellTypeAbsorb, Value: 127}
+	g[2][1] = &micro.Cell{Type: micro.CellTypeAttack, Value: 127}
+	g[1][2] = &micro.Cell{Type: micro.CellTypeAttack, Value: 127}
 
 	return &Bug{
 		Body:   g,

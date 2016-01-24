@@ -1,6 +1,9 @@
 package micro
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+)
 
 type CellType byte
 
@@ -17,17 +20,24 @@ type Cell struct {
 	Value byte
 }
 
-type CellGrid [][]Cell
+type CellGrid [][]*Cell
 
-func (c CellGrid) String() string {
-	// TODO
-	return fmt.Sprintf("cell<1,200>\n")
+func (g CellGrid) String() string {
+	var buffer bytes.Buffer
+	for _, col := range g {
+		for _, c := range col {
+			buffer.WriteString(fmt.Sprintf("%v ", c))
+		}
+		buffer.WriteString("\n")
+	}
+
+	return buffer.String()
 }
 
 func NewCellGrid(initialWidth, initialHeight int) CellGrid {
-	g := make([][]Cell, initialWidth)
+	g := make([][]*Cell, initialWidth)
 	for i, _ := range g {
-		g[i] = make([]Cell, initialHeight)
+		g[i] = make([]*Cell, initialHeight)
 	}
 	return g
 }

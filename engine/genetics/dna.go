@@ -29,6 +29,7 @@ type bodyPlanNode struct {
 	nodes []*bodyPlanNode // should always have a len == 4
 	cell  *micro.Cell
 	index int
+	depth int
 }
 
 func (bpn bodyPlanNode) String() string {
@@ -69,9 +70,9 @@ func markerToCellType(m byte) micro.CellType {
 	}
 }
 
-func sequenceToBodyPlanTree(s Sequence) *bodyPlanNode {
-	var root *bodyPlanNode
+func sequenceToBodyPlanTree(s Sequence) (root *bodyPlanNode, deepestNodeDepth int) {
 	stack := newBodyPlanNodeStack()
+	deepestNodeDepth = 1
 
 	for is := 0; is+1 < len(s); is++ {
 		m := s[is] % uniqueMarkerCount
@@ -82,19 +83,20 @@ func sequenceToBodyPlanTree(s Sequence) *bodyPlanNode {
 			if root == nil {
 				c := &micro.Cell{Type: micro.CellTypeAbsorb, Value: s[is]}
 				root = newBodyPlanNode(c)
+				root.depth = 1
 				stack.Put(root)
 			} else if stack.Empty() {
-				return root
+				return
 			} else {
 				current := stack.Peek()
 				for current.index == 4 {
 					if stack.Empty() {
-						return root
+						return
 					}
 					stack.Pop()
 					current = stack.Peek()
 					if current == nil {
-						return root
+						return
 					}
 				}
 				current.index++
@@ -103,22 +105,27 @@ func sequenceToBodyPlanTree(s Sequence) *bodyPlanNode {
 			c := &micro.Cell{Type: markerToCellType(m), Value: s[is]}
 			if root == nil {
 				root = newBodyPlanNode(c)
+				root.depth = 1
 				stack.Put(root)
 			} else if stack.Empty() {
-				return root
+				return
 			} else {
 				current := stack.Peek()
 				for current.index == 4 {
 					if stack.Empty() {
-						return root
+						return
 					}
 					stack.Pop()
 					current = stack.Peek()
 					if current == nil {
-						return root
+						return
 					}
 				}
 				n := newBodyPlanNode(c)
+				n.depth = current.depth + 1
+				if n.depth > deepestNodeDepth {
+					deepestNodeDepth = n.depth
+				}
 				current.nodes[current.index] = n
 				current.index++
 				stack.Put(n)
@@ -126,19 +133,33 @@ func sequenceToBodyPlanTree(s Sequence) *bodyPlanNode {
 		}
 	}
 
-	return root // TODO should return root
+	return
 }
 
-func bodyPlanTreeToCellGrid(n *bodyPlanNode) micro.CellGrid {
-	// TODO
-	g := micro.NewCellGrid(1, 1)
-	//cx, cy := 0, 0
+func mapBodyPlanNodeToGrid(n *bodyPlanNode, g *micro.CellGrid, cx, cy int) {
+	if n == nil {
+		return
+	}
+	if (*g)[cx][cy] == nil {
+		(*g)[cx][cy] = n.cell
+	}
+	mapBodyPlanNodeToGrid(n.nodes[0], g, cx, cy-1)
+	mapBodyPlanNodeToGrid(n.nodes[1], g, cx+1, cy)
+	mapBodyPlanNodeToGrid(n.nodes[2], g, cx, cy+1)
+	mapBodyPlanNodeToGrid(n.nodes[3], g, cx-1, cy)
+}
 
+func bodyPlanTreeToCellGrid(n *bodyPlanNode, depth int) micro.CellGrid {
+	// TODO
+	gridSize := 2*depth - 1
+	centerPos := gridSize / 2
+	g := micro.NewCellGrid(gridSize, gridSize)
+	mapBodyPlanNodeToGrid(n, &g, centerPos, centerPos)
 	return g
 }
 
 func sequenceToCellGrid(s Sequence) micro.CellGrid {
-	bpt := sequenceToBodyPlanTree(s)
-	cg := bodyPlanTreeToCellGrid(bpt)
+	bpt, depth := sequenceToBodyPlanTree(s)
+	cg := bodyPlanTreeToCellGrid(bpt, depth)
 	return cg
 }
